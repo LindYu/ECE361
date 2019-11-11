@@ -1,0 +1,118 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   main.c
+ * Author: yutiany3
+ *
+ * Created on November 10, 2017, 9:08 AM
+ */
+
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#define MAX_NAME 1000
+#define MAX_DATA 1000
+
+char* Type[] = {"LOGIN", "LO_ACK", "LO_NAK", "EXIT", "JOIN", "JN_ACK", "JN_NAK", "LEAVE_SESS", "NEW_SESS", "NS_ACK", "MESSAGE", "QUERY", "QU_ACK"};
+
+/*
+typedef enum state {
+    LOGIN, LO_ACK, LO_NAK, EXIT, JOIN, JN_ACK, JN_NAK, LEAVE_SESS, NEW_SESS, NS_ACK, MESSAGE, QUERY, QU_ACK,LAST
+} Type;*/
+
+struct lab3message {
+    unsigned int type;
+    unsigned int size;
+    unsigned char source[MAX_NAME];
+    unsigned char data[MAX_DATA];
+};
+
+char* formatPacket(struct lab3message *mes) {
+    char* formattedStr;
+    asprintf(&formattedStr, "%d:%d:%s:%s", mes->type, mes->size, mes->source, mes->data);
+    return formattedStr;
+}
+
+
+
+struct lab3message* packet_demultiplexer(char* message) {
+    struct lab3message* pkt;
+    int cnt = 0;
+    int cnt_field = 0;
+    char field[50];
+    int field_val[2];
+    char filename[100];
+    printf("here");
+    while (cnt < 2) {
+        if (message[0] == ':') {
+            field[cnt_field] = '\0';
+            // strcmp - "enum" starts from 0 ! 
+            if (cnt == 0) {
+                for (int i = 0; i < 13; i++) {
+                    if (strcmp(field, Type[i]) == 0) pkt->type = i + 1;
+                }
+                cnt++;
+            } else if (cnt = 1) {
+                pkt->size = atoi(field);
+            } else {
+                field[cnt_field] = message[0];
+                cnt_field++;
+            }
+            // increment bufpt means bufpt[0] starts at original bufpt[1]
+            message = message + 1;
+        }
+    }
+
+    // put into two strings
+    int i = 0;
+    for (i; message[i] != ':'; i++) {
+        pkt->source[i] = message[i];
+        if (message[i + 1] == ':') pkt->data[i + 1] = '\0';
+    }
+    for (int j = i + 2; message[j] != '\0'; j++) {
+        pkt->data[j] = message[j];
+        if (message[j + 1] == ':') pkt->data[j + 1] = '\0';
+    }
+    printf("%d %d %s %s", pkt->type, pkt->size, pkt->source, pkt->data);
+    return pkt;
+}
+
+/*
+ * 
+ */
+int main(int argc, char** argv) {
+    char command[1000];
+
+   // while (1) {
+        printf("Enter command>");
+        scanf("%[^\n]s", command);
+        unsigned int len = (unsigned) strlen(command);
+
+        for (unsigned int i = 0; i < len; i++) {
+            if (command[i] == ' ') command[i] = ':';
+        }
+
+        // call demultiplexer 
+        struct lab3message* pkt;
+       
+        pkt = packet_demultiplexer(command);
+
+        printf("%d %d %s %s", pkt->type, pkt->size, pkt->source, pkt->data);
+
+  //  }
+    return (EXIT_SUCCESS);
+}
+
+

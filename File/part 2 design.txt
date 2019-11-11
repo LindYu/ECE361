@@ -1,0 +1,14 @@
+Design choice: A client is able to invite other logged in clients (who are not already in a conference session) to join the inviter's conference session 
+
+Implementation: Create 3 new states INVITE, INVITE_ACK, INVITE_NACK. The inviter first send a INVITE request to the server, server NACK if the client the inviter invited is not logged in/ is in a session already. If the client could be invited, server then send a INVITE request to the client to be invited, the client can choose to ACK/NACK for willing to join/not join the session. 
+
+Control packets:
+
+type: INVITE , packet data: client ID
+type: INV_ACK, packet data: session ID
+type: INV_NACK, packet data: reason for failure
+
+Client command: 
+/invite [clientID]
+
+
